@@ -1,0 +1,4 @@
+dotnet ef migrations add InitQuestions  --project QuestionService/QuestionService.csproj --startup-project QuestionService/QuestionService.csproj  --output-dir Data --context QuestionDbContext
+
+
+dotnet ef migrations add AnswerAdded  --project QuestionService/QuestionService.csproj --startup-project QuestionService/QuestionService.csproj  --context QuestionDbContext
