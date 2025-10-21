@@ -10,6 +10,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Overflow.ApiService", "Over
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Overflow.Web", "Overflow.Web\Overflow.Web.csproj", "{61665C2F-CCBF-12E8-0F9B-E5872DE9D13B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		notes.txt = notes.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestionService", "QuestionService\QuestionService.csproj", "{BF2D466A-30E9-2EEB-6FE4-18AA4EB479D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,9 +41,16 @@ Global
 		{61665C2F-CCBF-12E8-0F9B-E5872DE9D13B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61665C2F-CCBF-12E8-0F9B-E5872DE9D13B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61665C2F-CCBF-12E8-0F9B-E5872DE9D13B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF2D466A-30E9-2EEB-6FE4-18AA4EB479D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF2D466A-30E9-2EEB-6FE4-18AA4EB479D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF2D466A-30E9-2EEB-6FE4-18AA4EB479D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF2D466A-30E9-2EEB-6FE4-18AA4EB479D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BF2D466A-30E9-2EEB-6FE4-18AA4EB479D1} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2466A945-D382-48A5-AEC4-3C087DB5F261}
