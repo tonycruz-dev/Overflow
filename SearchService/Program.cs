@@ -1,3 +1,4 @@
+using Common;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using SearchService.Data;
@@ -18,18 +19,15 @@ if(string.IsNullOrEmpty(typesenseUri))
 }
 var typesenseApiKey = builder.Configuration["typesense-api-key"];
 
-builder.Services.AddOpenTelemetry().WithTracing(traceProviderBuilder =>
-{
-    traceProviderBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault()
-            .AddService(builder.Environment.ApplicationName))
-        .AddSource("Wolverine");
-});
+//builder.Services.AddOpenTelemetry().WithTracing(traceProviderBuilder =>
+//{
+//    traceProviderBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault()
+//            .AddService(builder.Environment.ApplicationName))
+//        .AddSource("Wolverine");
+//});
 
-builder.Host.UseWolverine(opts =>
+await builder.UseWolverineWithRabbitMqAsync(opts =>
 {
-    opts.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
-
-    // Listen to a queue bound to the 'questions' exchange to receive events
     opts.ListenToRabbitQueue("questions.search", cfg =>
     {
         cfg.BindExchange("questions");
@@ -37,7 +35,22 @@ builder.Host.UseWolverine(opts =>
 
     // Explicitly connect message types to handler classes if assembly scanning misses them
     opts.Policies.AutoApplyTransactions();
+    opts.ApplicationAssembly = typeof(Program).Assembly;
 });
+
+//builder.Host.UseWolverine(opts =>
+//{
+//    opts.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
+
+//    // Listen to a queue bound to the 'questions' exchange to receive events
+//    opts.ListenToRabbitQueue("questions.search", cfg =>
+//    {
+//        cfg.BindExchange("questions");
+//    });
+
+//    // Explicitly connect message types to handler classes if assembly scanning misses them
+//    opts.Policies.AutoApplyTransactions();
+//});
 
 
 //if (string.IsNullOrEmpty(typesenseApiKey))

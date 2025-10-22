@@ -2,3 +2,6 @@ dotnet ef migrations add InitQuestions  --project QuestionService/QuestionServic
 
 
 dotnet ef migrations add AnswerAdded  --project QuestionService/QuestionService.csproj --startup-project QuestionService/QuestionService.csproj  --context QuestionDbContext
+
+
+aspire publish -o infa
