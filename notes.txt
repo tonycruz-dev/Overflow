@@ -5,3 +5,5 @@ dotnet ef migrations add AnswerAdded  --project QuestionService/QuestionService.
 
 
 aspire publish -o infa
+
+docker volume rm typesense-data postgres-data
