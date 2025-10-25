@@ -1,7 +1,6 @@
 'use client'
 
 import { AcademicCapIcon } from "@heroicons/react/24/solid";
-import { Button } from "@heroui/react";
 
 export default function Home() {
   return (

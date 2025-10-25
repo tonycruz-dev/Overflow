@@ -1,4 +1,3 @@
-
 import { getQuestionById } from "@/lib/actions/question-actions";
 import { notFound } from "next/navigation";
 import QuestionDetailedHeader from "@/app/questions/[id]/QuestionDetailedHeader";
@@ -8,14 +7,11 @@ import AnswersHeader from "@/app/questions/[id]/AnswersHeader";
 
 type Params = Promise<{ id: string }>;
 
-export default async function QuestionDetailedPage({
-  params,
-}: {
-  params: Params;
-}) {
-  const { id } = await params;
-  const question = await getQuestionById(id);
+export default async function QuestionDetailedPage({ params,}: {  params: Params;}) {
+  const { id } = await params; // Next.js 15: params is a Promise in RSC
+  const { data: question, error } = await getQuestionById(id);
 
+  if (error) throw error;
   if (!question) return notFound();
 
   return (
