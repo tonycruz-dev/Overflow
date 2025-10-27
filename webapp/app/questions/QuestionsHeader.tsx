@@ -2,15 +2,15 @@
 
 import { Button, Tab, Tabs } from "@heroui/react";
 import Link from "next/link";
-import { useTagStore } from "@/lib/useTagStore";
+import { useTagStore } from "@/lib/hooks/useTagStore";
 
 type Props = {
-  tag: string;
+  tag?: string;
   total: number;
 };
 
 export default function QuestionsHeader({ tag, total }: Props) {
-  const selectedTag = useTagStore((state) => state.getTagBySlug(tag));
+  const selectedTag = useTagStore((state) => state.getTagBySlug(tag || ""));
   const tabs = [
     { key: "newest", label: "Newest" },
     { key: "active", label: "Active" },

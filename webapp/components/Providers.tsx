@@ -4,7 +4,7 @@ import * as React from "react";
 import { HeroUIProvider, ToastProvider } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { ThemeProvider } from "next-themes";
-import { useTagStore } from "@/lib/useTagStore";
+import { useTagStore } from "@/lib/hooks/useTagStore";
 import { getTags } from "@/lib/actions/tag-actions";
 
 export default function Providers({ children }: { children: React.ReactNode }) {

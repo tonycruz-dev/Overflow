@@ -9,4 +9,6 @@
 /* Custom variants */
 @variant dark (.dark &);
 
-/* You can add custom styles here */
+.ProseMirror:focus {
+    outline: none
+}
