@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import * as React from "react";
 // 1. import `HeroUIProvider` component
 import { HeroUIProvider, ToastProvider } from "@heroui/react";
@@ -7,22 +7,22 @@ import { ThemeProvider } from "next-themes";
 import { useTagStore } from "@/lib/useTagStore";
 import { getTags } from "@/lib/actions/tag-actions";
 
-export default function Providers({children}: {children: React.ReactNode}) {
+export default function Providers({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const setTags = useTagStore((state) => state.setTags);
 
-   React.useEffect(() => {
-     const loadTags = async () => {
-       const { data: tags } = await getTags();
+  React.useEffect(() => {
+    const loadTags = async () => {
+      const { data: tags } = await getTags();
       if (tags) setTags(tags);
-     };
+    };
 
-     void loadTags();
-   }, [setTags]);
+    void loadTags();
+  }, [setTags]);
   // 2. Wrap HeroUIProvider at the root of your app
   return (
     <HeroUIProvider navigate={router.push} className="h-full flex flex-col">
-      <ToastProvider/> 
+      <ToastProvider />
       <ThemeProvider attribute="class" defaultTheme="light">
         {children}
       </ThemeProvider>

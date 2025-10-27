@@ -9,10 +9,19 @@ import {
 } from "date-fns";
 
 export function errorToast(error: { message: string; status?: number }) {
+  //console.log("Showing error toast:", error);
   return addToast({
     color: "danger",
     title: error.status || "Error!",
     description: error.message || "Something went wrong",
+  });
+}
+
+export function successToast(message: string, title?: string) {
+  return addToast({
+    color: "success",
+    title: title || "Success!",
+    description: message,
   });
 }
 
