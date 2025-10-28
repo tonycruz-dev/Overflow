@@ -1,18 +1,22 @@
 import NextAuth from "next-auth";
 import Keycloak from "next-auth/providers/keycloak";
+import { authConfig } from "@/lib/config";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Keycloak({
       authorization: {
         params: { scope: "openid profile email offline_access" },
+        url: `${authConfig.kcIssuer}/protocol/openid-connect/auth`,
       },
+        token: `${authConfig.kcInternal}/protocol/openid-connect/token`,
+        userinfo: `${authConfig.kcInternal}/protocol/openid-connect/userinfo`,
     }),
   ],
   callbacks: {
     async jwt({ token, account, profile }) {
       const now = Math.floor(Date.now() / 1000);
-      if(profile && profile.sub){
+      if (profile && profile.sub) {
         token.sub = profile.sub;
       }
 
@@ -30,14 +34,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       try {
         const response = await fetch(
-          `${process.env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/token`,
+          `${authConfig.kcIssuer}/protocol/openid-connect/token`,
           {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
               grant_type: "refresh_token",
-              client_id: process.env.AUTH_KEYCLOAK_ID!,
-              client_secret: process.env.AUTH_KEYCLOAK_SECRET!,
+              client_id: authConfig.kcClientId,
+              client_secret: authConfig.kcSecret,
               refresh_token: token.refreshToken as string,
             }),
           }
@@ -62,8 +66,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-
-      if(token.sub){
+      if (token.sub) {
         session.user.id = token.sub;
       }
 
