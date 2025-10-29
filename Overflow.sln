@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "Contracts\Cont
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{276A2FEC-6A08-4CC6-ABD9-A046D8770626}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProfileService", "ProfileService\ProfileService.csproj", "{AB9ABDB6-28BE-7BC0-D701-EBE86F3AC022}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,12 +65,17 @@ Global
 		{276A2FEC-6A08-4CC6-ABD9-A046D8770626}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{276A2FEC-6A08-4CC6-ABD9-A046D8770626}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{276A2FEC-6A08-4CC6-ABD9-A046D8770626}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB9ABDB6-28BE-7BC0-D701-EBE86F3AC022}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB9ABDB6-28BE-7BC0-D701-EBE86F3AC022}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB9ABDB6-28BE-7BC0-D701-EBE86F3AC022}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB9ABDB6-28BE-7BC0-D701-EBE86F3AC022}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BF2D466A-30E9-2EEB-6FE4-18AA4EB479D1} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{AB9ABDB6-28BE-7BC0-D701-EBE86F3AC022} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2466A945-D382-48A5-AEC4-3C087DB5F261}

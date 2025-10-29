@@ -17,7 +17,10 @@ public static class WolverineExtensions
     public static async Task UseWolverineWithRabbitMqAsync(
         this IHostApplicationBuilder builder, Action<WolverineOptions> configureMessaging)
     {
-        var retryPolicy = Policy
+        var isEfDesignTime = AppDomain.CurrentDomain.FriendlyName.StartsWith("ef", StringComparison.OrdinalIgnoreCase);
+        if (!isEfDesignTime)
+        {
+            var retryPolicy = Policy
             .Handle<BrokerUnreachableException>()
             .Or<SocketException>()
             .WaitAndRetryAsync(
@@ -29,18 +32,18 @@ public static class WolverineExtensions
                                       $"{timeSpan.Seconds} seconds...");
                 });
 
-        await retryPolicy.ExecuteAsync(async () =>
-        {
-            var endpoint = builder.Configuration.GetConnectionString("messaging")
-                           ?? throw new InvalidOperationException("messaging connection string not found");
-
-            var factory = new ConnectionFactory
+            await retryPolicy.ExecuteAsync(async () =>
             {
-                Uri = new Uri(endpoint)
-            };
-            await using var connection = await factory.CreateConnectionAsync();
-        });
+                var endpoint = builder.Configuration.GetConnectionString("messaging")
+                               ?? throw new InvalidOperationException("messaging connection string not found");
 
+                var factory = new ConnectionFactory
+                {
+                    Uri = new Uri(endpoint)
+                };
+                await using var connection = await factory.CreateConnectionAsync();
+            });
+        }
         builder.Services.AddOpenTelemetry().WithTracing(traceProviderBuilder =>
         {
             traceProviderBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault()
@@ -56,5 +59,7 @@ public static class WolverineExtensions
             //opts.PublishAllMessages().ToRabbitExchange("questions");
             configureMessaging(opts);
         });
+
+
     }
 }

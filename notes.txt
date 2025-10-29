@@ -1,9 +1,13 @@
 dotnet ef migrations add InitQuestions  --project QuestionService/QuestionService.csproj --startup-project QuestionService/QuestionService.csproj  --output-dir Data --context QuestionDbContext
 
+dotnet ef migrations add InitProfiles  --project ProfileService/ProfileService.csproj --startup-project ProfileService/ProfileService.csproj  --output-dir Data --context ProfileDbContext
+
 
 dotnet ef migrations add AnswerAdded  --project QuestionService/QuestionService.csproj --startup-project QuestionService/QuestionService.csproj  --context QuestionDbContext
 
+dotnet ef migrations add removeDisplayName  --project QuestionService/QuestionService.csproj --startup-project QuestionService/QuestionService.csproj  --context QuestionDbContext
 
 aspire publish -o infra
 
-docker volume rm typesense-data postgres-data
+docker volume rm typesense-data postgres-data rabbitmq-data
+docker volume ls

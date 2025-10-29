@@ -38,7 +38,6 @@ public class QuestionsController(QuestionDbContext context, IMessageBus bus, Tag
             Content = sanitizer.Sanitize(dto.Content),
             TagSlugs = dto.Tags,
             AskerId = userId,
-            AskerDisplayName = userName,
         };
 
         context.Questions.Add(question);
@@ -150,7 +149,6 @@ public class QuestionsController(QuestionDbContext context, IMessageBus bus, Tag
         {
             Content = sanitizer.Sanitize(dto.Content),
             UserId = userId,
-            UserDisplayName = name,
             QuestionId = questionId
         };
 
