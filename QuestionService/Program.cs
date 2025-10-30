@@ -1,4 +1,5 @@
 using Common;
+using Contracts;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -9,6 +10,8 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using System.Net.Sockets;
 using Wolverine;
+using Wolverine.EntityFrameworkCore;
+using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,42 +29,24 @@ builder.Services.AddKeyCloakAuthentication();
 //      options.Audience = "overflow";
 //    });
 
-builder.AddNpgsqlDbContext<QuestionDbContext>("questiondb");
+//builder.AddNpgsqlDbContext<QuestionDbContext>("questiondb");
+var connString = builder.Configuration.GetConnectionString("questionDb");
 
-//builder.Services.AddOpenTelemetry().WithTracing(traceProviderBuilder =>
-//{
-//    traceProviderBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault()
-//        .AddService(builder.Environment.ApplicationName))
-//        .AddSource("Wolverine");
-//});
-
-//var retryPolicy = Policy
-//    .Handle<BrokerUnreachableException>()
-//    .Or<SocketException>()
-//    .WaitAndRetryAsync(
-//    retryCount: 5,retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-//    (exception, timeSpan,retryCount) =>
-//    {
-//        Console.WriteLine($"Retry attempt {retryCount} failed. Retrying in  {timeSpan.Seconds} seconds.");
-//    });
-
-//await retryPolicy.ExecuteAsync(async () =>
-//{
-//    var endpont = builder.Configuration.GetConnectionString("messaging") 
-//    ?? throw new InvalidOperationException("messaging connection string not found.");
-
-//    var factory = new ConnectionFactory()
-//    {
-//        Uri = new Uri(endpont)
-//    };
-
-//    await using var connection = await factory.CreateConnectionAsync();
-//});
+builder.Services.AddDbContext<QuestionDbContext>(options =>
+{
+    options.UseNpgsql(connString);
+}, optionsLifetime: ServiceLifetime.Singleton);
 
 await builder.UseWolverineWithRabbitMqAsync(opts =>
 {
-    opts.PublishAllMessages().ToRabbitExchange("questions");
+    
     opts.ApplicationAssembly = typeof(Program).Assembly;
+    opts.PersistMessagesWithPostgresql(connString!);
+    opts.UseEntityFrameworkCoreTransactions();
+    //opts.PublishAllMessages().ToRabbitExchange("questions");
+    opts.PublishMessage<QuestionCreated>().ToRabbitExchange("Contracts.QuestionCreated").UseDurableOutbox();
+    opts.PublishMessage<QuestionUpdated>().ToRabbitExchange("Contracts.QuestionUpdated").UseDurableOutbox();
+    opts.PublishMessage<QuestionDeleted>().ToRabbitExchange("Contracts.QuestionDeleted").UseDurableOutbox();
 });
 
 
@@ -82,11 +67,12 @@ builder.Services.AddOpenApi();
 var app = builder.Build();
 
 // Apply EF Core migrations at startup
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<QuestionDbContext>();
-    await db.Database.MigrateAsync();
-}
+//using (var scope = app.Services.CreateScope())
+//{
+//    var db = scope.ServiceProvider.GetRequiredService<QuestionDbContext>();
+//    await db.Database.MigrateAsync();
+//}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -98,5 +84,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 app.MapDefaultEndpoints();
+
+await app.MigrateDbContextAsync<QuestionDbContext>();
 
 await app.RunAsync();

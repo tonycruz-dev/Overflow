@@ -1,4 +1,5 @@
-﻿using Contracts;
+﻿using Common;
+using Contracts;
 using FastExpressionCompiler;
 using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using QuestionService.Data;
 using QuestionService.DTOs;
 using QuestionService.Models;
+using QuestionService.RequestHelpers;
 using QuestionService.Services;
 using Reputation;
 using System.Security.Claims;
@@ -22,59 +24,86 @@ public class QuestionsController(QuestionDbContext context, IMessageBus bus, Tag
     [HttpPost]
     public async Task<ActionResult<Question>> CreateQuestions(CreateQuestionDto dto)
     {
-        if (!await tagService.AreTagsValidAsync(dto.Tags))
+         if (!await tagService.AreTagsValidAsync(dto.Tags))
             return BadRequest("Invalid tags");
-
+        
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var userName = User.FindFirstValue("name");
-        if (userId is null || userName is null)
-        {
-            return BadRequest("User information is missing.");
-        }
+        var name = User.FindFirstValue("name");
+        
+        if (userId is null || name is null) return BadRequest("Cannot get user details");
 
         var sanitizer = new HtmlSanitizer();
+
         var question = new Question
         {
             Title = dto.Title,
             Content = sanitizer.Sanitize(dto.Content),
             TagSlugs = dto.Tags,
-            AskerId = userId,
+            AskerId = userId
         };
+        
+        await using var tx = await context.Database.BeginTransactionAsync();
 
-        context.Questions.Add(question);
-        await context.SaveChangesAsync();
+        try
+        {
+            await context.Questions.AddAsync(question);
+            
+            await context.SaveChangesAsync();
+        
+            await bus.PublishAsync(new QuestionCreated(question.Id, question.Title, question.Content, 
+                question.CreatedAt, question.TagSlugs));
+            
+            await tx.CommitAsync();
+        }
+        catch (Exception e)
+        {
+            await tx.RollbackAsync();
+            Console.WriteLine(e);
+            throw;
+        }
+        
 
+        
         var slugs = question.TagSlugs.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
         if (slugs.Length > 0)
         {
             await context.Tags
                 .Where(t => slugs.Contains(t.Slug))
-                .ExecuteUpdateAsync(x => x.SetProperty(t => t.UsageCount,
-                    t => t.UsageCount + 1));
+                .ExecuteUpdateAsync(x => x.SetProperty(t => t.UsageCount, 
+                    t => t.UsageCount + 1)); 
         }
-
-        await bus.PublishAsync(new Contracts.QuestionCreated(
-            question.Id,
-            question.Title,
-            question.Content,
-            question.CreatedAt,
-            question.TagSlugs
-        ));
-
-        return Created($"/api/questions/{question.Id}", question);
-        //return CreatedAtAction(nameof(GetQuestions), new { id = question.Id }, question);
+        
+        return Created($"/questions/{question.Id}", question);
     }
     [HttpGet]
-    public async Task<ActionResult<List<Question>>> GetQuestions(string? tag)
+    public async Task<ActionResult<PaginationResult<Question>>> GetQuestions([FromQuery] QuestionsQuery q)
     {
         var query = context.Questions.AsQueryable();
 
-        if (!string.IsNullOrEmpty(tag))
+        if (!string.IsNullOrEmpty(q.Tag))
         {
-            query = query.Where(x => x.TagSlugs.Contains(tag));
+            query = query.Where(x => x.TagSlugs.Contains(q.Tag));
         }
-        return await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
+
+        query = q.Sort switch
+        {
+            "newest" => query.OrderByDescending(x => x.CreatedAt),
+            "active" => query.OrderByDescending(x => new[]
+            {
+                x.CreatedAt,
+                x.UpdatedAt ?? DateTime.MinValue,
+                x.Answers.Max(a => (DateTime?)a.CreatedAt) ?? DateTime.MinValue,
+                x.Answers.Max(a => a.UpdatedAt) ?? DateTime.MinValue,
+            }.Max()),
+            "unanswered" => query.Where(x => x.AnswerCount == 0)
+                .OrderByDescending(x => x.CreatedAt),
+            _ => query.OrderByDescending(x => x.CreatedAt)
+        };
+
+        var result = await query.ToPaginatedListAsync(q);
+
+        return result;
     }
     [HttpGet("{id}")]
     public async Task<ActionResult<Question>> GetQuestion(string id)

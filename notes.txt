@@ -12,4 +12,5 @@ dotnet ef migrations add removeDisplayName  --project QuestionService/QuestionSe
 aspire publish -o infra
 
 docker volume rm typesense-data postgres-data rabbitmq-data
+docker volume rm typesense-data postgres-data 
 docker volume ls
