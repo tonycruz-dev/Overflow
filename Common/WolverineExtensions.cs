@@ -55,8 +55,12 @@ public static class WolverineExtensions
         {
             opts.UseRabbitMqUsingNamedConnection("messaging")
                 .AutoProvision()
-                .DeclareExchange("questions");
-            //opts.PublishAllMessages().ToRabbitExchange("questions");
+                .UseConventionalRouting(x =>
+                {
+                    x.QueueNameForListener(t => $"{t.FullName}." +
+                                                $"{builder.Environment.ApplicationName}");
+                });
+
             configureMessaging(opts);
         });
 

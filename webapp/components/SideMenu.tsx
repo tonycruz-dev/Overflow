@@ -20,6 +20,7 @@ export default function SideMenu() {
     },
     { key: "tags", icon: TagIcon, text: "Tags", href: "/tags" },
     { key: "session", icon: UserIcon, text: "User Session", href: "/session" },
+    { key: "profiles", icon: UserIcon, text: "Profiles", href: "/profiles" },
   ];
 
   return (

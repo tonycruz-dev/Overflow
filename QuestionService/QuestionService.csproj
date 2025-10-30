@@ -20,6 +20,7 @@
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Overflow.ServiceDefaults\Overflow.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Reputation\Reputation.csproj" />
   </ItemGroup>
 
 </Project>

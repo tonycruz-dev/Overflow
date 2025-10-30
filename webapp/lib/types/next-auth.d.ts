@@ -10,7 +10,7 @@ declare module "next-auth" {
       id: string;
       displayName: string;
       reputation: number;
-    } & DefaultUser["user"];
+    } & DefaultUser;
     accessToken: string;
   }
 
