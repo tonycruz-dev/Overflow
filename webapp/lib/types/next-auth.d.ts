@@ -31,6 +31,9 @@ declare module "next-auth/jwt" {
       id: string;
       displayName: string;
       reputation: number;
+      email: string;
+      emailVerified: Date;
+      
     };
   }
 }

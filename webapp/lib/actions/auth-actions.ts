@@ -1,10 +1,11 @@
 'use server';
 import { fetchClient } from "@/lib/fetchClient";
 import { auth } from "@/auth";
+import { User } from "next-auth";
 export async function testAuth() {
    return await fetchClient(`/test/auth`, "GET");
 }
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<User | null> {
   const session = await auth();
-  return session?.user || null;
+  return session?.user ?? null;
 }

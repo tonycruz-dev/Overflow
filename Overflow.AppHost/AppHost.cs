@@ -113,7 +113,7 @@ if (!builder.Environment.IsDevelopment())
         .WithEndpoint(80, 80, "nginx", isExternal: true)
         .WithEndpoint(443, 443, "nginx-ssl", isExternal: true)
         .WithBindMount("/var/run/docker.sock", "/tmp/docker.sock", true)
-        .WithBindMount("../infra/devcerts", "/etc/nginx/certs", true);
+        .WithBindMount("../infa/devcerts", "/etc/nginx/certs", true);
 }
 
 builder.Build().Run();

@@ -3,6 +3,7 @@ using Contracts;
 using JasperFx.Events;
 using JasperFx.Events.Projections;
 using Marten;
+using StatsService.Extensions;
 using StatsService.Models;
 using StatsService.Projections;
 using Wolverine;
@@ -26,9 +27,12 @@ await builder.UseWolverineWithRabbitMqAsync(opts =>
     opts.ApplicationAssembly = typeof(Program).Assembly;
 });
 
+var connString = builder.Configuration.GetConnectionString("statDb")!;
+await connString.EnsurePostgresDatabaseExistsAsync();
+
 builder.Services.AddMarten(opts =>
 {
-    opts.Connection(builder.Configuration.GetConnectionString("statDb")!);
+    opts.Connection(connString);
 
     opts.Events.StreamIdentity = StreamIdentity.AsString;
     opts.Events.AddEventType<QuestionCreated>();

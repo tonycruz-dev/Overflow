@@ -1,5 +1,12 @@
 "use server";
-import { Answer, PaginatedResult, Question, QuestionParams, Vote, VoteRecord } from "@/lib/types";
+import {
+  Answer,
+  PaginatedResult,
+  Question,
+  QuestionParams,
+  Vote,
+  VoteRecord,
+} from "@/lib/types";
 import { fetchClient } from "@/lib/fetchClient";
 import { QuestionSchema } from "../schemas/questionSchema";
 import { AnswerSchema } from "../schemas/answerSchema";
@@ -7,7 +14,9 @@ import { revalidatePath } from "next/cache";
 import { FetchResponse, Profile } from "@/lib/types";
 import { auth } from "@/auth";
 
-export async function getQuestions(qParams?: QuestionParams): Promise<FetchResponse<PaginatedResult<Question>>> {
+export async function getQuestions(
+  qParams?: QuestionParams
+): Promise<FetchResponse<PaginatedResult<Question>>> {
   const params = new URLSearchParams();
 
   if (qParams?.tag) params.set("tag", qParams.tag);
@@ -28,7 +37,9 @@ export async function getQuestions(qParams?: QuestionParams): Promise<FetchRespo
     };
   }
 
-  const userIds = Array.from(new Set(questions.items.map((x) => x.askerId)));
+  const userIds = Array.from(
+    new Set(questions.items.map((x: Question) => x.askerId))
+  );
   if (userIds.length === 0)
     return { data: { items: [], page: 0, pageSize: 0, totalCount: 0 } };
 
@@ -47,9 +58,9 @@ export async function getQuestions(qParams?: QuestionParams): Promise<FetchRespo
       error: { message: "Problem getting profiles", status: 500 },
     };
 
-  const profileMap = new Map(profiles?.map((p) => [p.userId, p]));
+  const profileMap = new Map(profiles?.map((p: Profile) => [p.userId, p]));
 
-  const enriched = questions.items.map((q) => ({
+  const enriched = questions.items.map((q: Question) => ({
     ...q,
     author: profileMap.get(q.askerId),
   }));
@@ -103,7 +114,7 @@ export async function getQuestionById(
       error: { message: "Problem getting profiles", status: 500 },
     };
 
-  const profileMap = new Map(profiles?.map((p) => [p.userId, p]));
+  const profileMap = new Map(profiles?.map((p: Profile) => [p.userId, p]));
 
   const session = await auth();
   let voteMap = new Map<string, number>();
@@ -120,7 +131,9 @@ export async function getQuestionById(
         data: null,
         error: { message: "Problem getting votes", status: 500 },
       };
-    voteMap = new Map((votes ?? []).map((v) => [v.targetId, v.voteValue]));
+    voteMap = new Map(
+      (votes ?? []).map((v: VoteRecord) => [v.targetId, v.voteValue])
+    );
   }
 
   const getUserVote = (targetId: string) => voteMap.get(targetId) ?? 0;
@@ -129,7 +142,7 @@ export async function getQuestionById(
     ...question,
     author: profileMap.get(question.askerId),
     userVoted: getUserVote(question.id),
-    answers: (question.answers ?? []).map((a) => ({
+    answers: (question.answers ?? []).map((a: Answer) => ({
       ...a,
       author: profileMap.get(a.userId),
       userVoted: getUserVote(a.id),
@@ -138,8 +151,6 @@ export async function getQuestionById(
 
   return { data: enriched };
 }
-
-
 
 export async function searchQuestions(query: string) {
   return fetchClient<Question[]>(`/search?query=${query}`, "GET");
@@ -157,7 +168,7 @@ export async function deleteQuestion(id: string) {
   return fetchClient(`/questions/${id}`, "DELETE");
 }
 
- export async function postAnswer(data: AnswerSchema, questionId: string) {
+export async function postAnswer(data: AnswerSchema, questionId: string) {
   const result = await fetchClient<Answer>(
     `/questions/${questionId}/answers`,
     "POST",
@@ -169,9 +180,14 @@ export async function deleteQuestion(id: string) {
   return result;
 }
 
-export async function editAnswer(answerId: string, questionId: string, content: AnswerSchema) {
-  const result = await fetchClient(`/questions/${questionId}/answers/${answerId}`,
-      "PUT",
+export async function editAnswer(
+  answerId: string,
+  questionId: string,
+  content: AnswerSchema
+) {
+  const result = await fetchClient(
+    `/questions/${questionId}/answers/${answerId}`,
+    "PUT",
     { body: content }
   );
   console.log(result);

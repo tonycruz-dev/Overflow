@@ -1,7 +1,12 @@
 "use server";
 
 import { fetchClient } from "@/lib/fetchClient";
-import { FetchResponse, Profile, TopUser, TopUserWithProfile } from "@/lib/types";
+import {
+  FetchResponse,
+  Profile,
+  TopUser,
+  TopUserWithProfile,
+} from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { EditProfileSchema } from "@/lib/schemas/editProfileSchema";
 
@@ -12,7 +17,7 @@ export async function getUserProfiles(sortBy?: string) {
 }
 
 export async function getProfileById(id: string) {
-    debugger
+  debugger;
   return fetchClient<Profile>(`/profiles/${id}`, "GET");
 }
 
@@ -42,7 +47,7 @@ export async function getTopUsers(): Promise<
       error: { message: "Problem getting users", status: 500 },
     };
 
-  const ids = [...new Set(users.map((u) => u.userId))];
+  const ids = [...new Set(users.map((u: TopUser) => u.userId))];
   const qs = encodeURIComponent(ids.join(","));
 
   const { data: profiles, error: profilesError } = await fetchClient<Profile[]>(
@@ -57,10 +62,12 @@ export async function getTopUsers(): Promise<
       error: { message: "Problem getting profiles", status: 500 },
     };
 
-  const byId = new Map((profiles ?? []).map((p) => [p.userId, p]));
+  const byId = new Map<string, Profile>(
+    (profiles ?? []).map((p: Profile) => [p.userId, p])
+  );
 
   return {
-    data: users.map((u) => ({
+    data: users.map((u: TopUser) => ({
       ...u,
       profile: byId.get(u.userId),
     })) as TopUserWithProfile[],
