@@ -21,6 +21,7 @@ public static class AuthExtensions
                         "http://keycloak:8080/realms/overflow",
                         "http://id.overflow.local/realms/overflow",
                         "https://id.overflow.local/realms/overflow",
+                        "https://keycloak.salmoncoast-ae37d936.uksouth.azurecontainerapps.io/realms/overflow",
                         
                     ]
                 };

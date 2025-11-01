@@ -1,26 +1,34 @@
+using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
 using Microsoft.Extensions.Hosting;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var compose = builder.AddDockerComposeEnvironment("production")
-    .WithDashboard(dashboard => dashboard.WithHostPort(8080));
+//var compose = builder.AddDockerComposeEnvironment("production")
+//    .WithDashboard(dashboard => dashboard.WithHostPort(8080));
 //var apiService = builder.AddProject<Projects.Overflow_ApiService>("apiservice")
 //    .WithHttpHealthCheck("/health");
 
-var keyCloak = builder.AddKeycloak("keycloak", 6001)
+var kcPort = builder.ExecutionContext.IsPublishMode ? 80 : 6001;
+
+var keyCloak = builder.AddKeycloak("keycloak",kcPort)
+    .WithEndpoint("http", e => e.IsExternal = true)
     .WithDataVolume("keycloak-data")
-    .WithRealmImport("../infa/realms")
+    //.WithRealmImport("../infa/realms")
     .WithEnvironment("KC_HTTP_ENABLED", "true")
     .WithEnvironment("KC_HOSTNAME_STRICT", "false")
-    .WithEnvironment("KC_PROXY_HEADERS", "xforwarded")
-    .WithEnvironment("VIRTUAL_HOST", "id.overflow.local")
-    .WithEnvironment("VIRTUAL_PORT", "8080");
+    .WithEnvironment("KC_PROXY_HEADERS", "xforwarded");
+    //.WithEnvironment("VIRTUAL_HOST", "id.overflow.local")
+    //.WithEnvironment("VIRTUAL_PORT", "8080");
 
-var postgres = builder.AddPostgres("postgres", port: 5432)
-    .WithDataVolume("postgres-data")
+var pgUser = builder.AddParameter("pg-username", secret:true);
+var pgPassword = builder.AddParameter("pg-password", secret:true);
+
+var postgres = builder.AddAzurePostgresFlexibleServer("postgres")
+    .WithPasswordAuthentication(pgUser, pgPassword);
+    //.WithDataVolume("postgres-data")
     //.WithPgAdmin()
-    .WithPgWeb();
+    //.WithPgWeb();
 
 //var typesenseApiKey = builder.AddParameter("typesense-api-key", secret: true);
 
@@ -37,7 +45,6 @@ var statDb = postgres.AddDatabase("statDb");
 var voteDb = postgres.AddDatabase("voteDb");
 
 var rabbitmq = builder.AddRabbitMQ("messaging")
-    .WithDataVolume("rabbitmq-data")
     .WithManagementPlugin(port: 15672);
 
 var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
@@ -90,30 +97,43 @@ var yarp = builder.AddYarp("gateway")
         yarpBuilder.AddRoute("/test/{**catch-all}", questionService);
         yarpBuilder.AddRoute("/tags/{**catch-all}", questionService);
         yarpBuilder.AddRoute("/search/{**catch-all}", searchService);
-        yarpBuilder.AddRoute("/profiles/{**catch-all}", profileService);
+         yarpBuilder.AddRoute("/profiles/{**catch-all}", profileService);
         yarpBuilder.AddRoute("/stats/{**catch-all}", statService);
         yarpBuilder.AddRoute("/votes/{**catch-all}", voteService);
     })
     .WithEnvironment("ASPNETCORE_URLS", "http://*:8001")
-    .WithEndpoint(port: 8001, targetPort: 8001, scheme: "http", name: "gateway", isExternal: true)
-    .WithEnvironment("VIRTUAL_HOST", "api.overflow.local")
-    .WithEnvironment("VIRTUAL_PORT", "8001");
+    .WithEndpoint(port: 8001, targetPort: 8001, scheme: "http", name: "gateway", isExternal: true);
+    //.WithEnvironment("VIRTUAL_HOST", "api.overflow.local")
+    //.WithEnvironment("VIRTUAL_PORT", "8001");
 
 
 var webapp = builder.AddNpmApp("webapp", "../webapp", "dev")
     .WithReference(keyCloak)
-    .WithHttpEndpoint(env: "PORT", port: 3000, targetPort: 4000)
-    .WithEnvironment("VIRTUAL_HOST", "app.overflow.local")
-    .WithEnvironment("VIRTUAL_PORT", "4000")
+    
+    //.WithEnvironment("VIRTUAL_HOST", "app.overflow.local")
+    //.WithEnvironment("VIRTUAL_PORT", "4000")
     .PublishAsDockerFile();
 
-if (!builder.Environment.IsDevelopment())
+//if (!builder.Environment.IsDevelopment())
+//{
+//    builder.AddContainer("nginx-proxy", "nginxproxy/nginx-proxy", "1.8")
+//        .WithEndpoint(80, 80, "nginx", isExternal: true)
+//        .WithEndpoint(443, 443, "nginx-ssl", isExternal: true)
+//        .WithBindMount("/var/run/docker.sock", "/tmp/docker.sock", true)
+//        .WithBindMount("../infa/devcerts", "/etc/nginx/certs", true);
+//}
+
+if (builder.ExecutionContext.IsPublishMode)
 {
-    builder.AddContainer("nginx-proxy", "nginxproxy/nginx-proxy", "1.8")
-        .WithEndpoint(80, 80, "nginx", isExternal: true)
-        .WithEndpoint(443, 443, "nginx-ssl", isExternal: true)
-        .WithBindMount("/var/run/docker.sock", "/tmp/docker.sock", true)
-        .WithBindMount("../infa/devcerts", "/etc/nginx/certs", true);
+    rabbitmq.WithVolume("rabbitmq-data", "/var/lib/rabbitmq/mnesia");
+    webapp.WithEndpoint(env: "PORT", port: 80, targetPort: 4000, scheme: "http", isExternal: true);
+}
+else
+{
+    postgres.RunAsContainer();
+    rabbitmq.WithDataVolume("rabbitmq-data");
+    webapp.WithHttpEndpoint(env: "PORT", port: 3000, targetPort: 4000);
 }
 
-builder.Build().Run();
+
+    builder.Build().Run();

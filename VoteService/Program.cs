@@ -1,6 +1,7 @@
 using Common;
 using Contracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Reputation;
 using System.Security.Claims;
 using VoteService.Data;
@@ -20,7 +21,8 @@ await builder.UseWolverineWithRabbitMqAsync(opts =>
 {
     opts.ApplicationAssembly = typeof(Program).Assembly;
 });
-builder.AddNpgsqlDbContext<VoteDbContext>("voteDb");
+//builder.AddNpgsqlDbContext<VoteDbContext>("voteDb");
+builder.AddAzureNpgsqlDbContext<VoteDbContext>("voteDb");
 
 var app = builder.Build();
 
